@@ -56,7 +56,7 @@
             font-size: 14px;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
@@ -65,14 +65,39 @@
             transition: border-color 0.3s;
         }
 
-        input:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: #667eea;
         }
 
-        input:disabled {
+        input:disabled, select:disabled {
             background-color: #f5f5f5;
             cursor: not-allowed;
+        }
+
+        .selector-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .selector-group select {
+            flex: 1;
+        }
+
+        .selector-group span {
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .distance-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .distance-group select {
+            flex: 1;
         }
 
         .helper-text {
@@ -160,21 +185,119 @@
         <p class="subtitle">Remplissez deux valeurs pour calculer la troisième</p>
 
         <div class="input-group">
-            <label for="distance">Distance (km)</label>
-            <input type="number" id="distance" placeholder="Ex: 10" step="0.01" min="0">
-            <div class="helper-text">Entrez la distance en kilomètres</div>
+            <label for="distance-km">Distance</label>
+            <div class="distance-group">
+                <select id="distance-km">
+                    <option value="">-- km --</option>
+                    <option value="1">1 km</option>
+                    <option value="2">2 km</option>
+                    <option value="3">3 km</option>
+                    <option value="5">5 km</option>
+                    <option value="10">10 km</option>
+                    <option value="15">15 km</option>
+                    <option value="20">20 km</option>
+                    <option value="21.1">21.1 km (Semi-marathon)</option>
+                    <option value="25">25 km</option>
+                    <option value="30">30 km</option>
+                    <option value="42.195">42.195 km (Marathon)</option>
+                    <option value="50">50 km</option>
+                    <option value="100">100 km</option>
+                </select>
+                <select id="distance-m">
+                    <option value="">-- m --</option>
+                    <option value="0">0 m</option>
+                    <option value="100">100 m</option>
+                    <option value="200">200 m</option>
+                    <option value="300">300 m</option>
+                    <option value="400">400 m</option>
+                    <option value="500">500 m</option>
+                    <option value="600">600 m</option>
+                    <option value="700">700 m</option>
+                    <option value="800">800 m</option>
+                    <option value="900">900 m</option>
+                </select>
+            </div>
+            <div class="helper-text">Sélectionnez la distance en kilomètres et mètres</div>
         </div>
 
         <div class="input-group">
-            <label for="time">Temps (format: HH:MM:SS ou MM:SS)</label>
-            <input type="text" id="time" placeholder="Ex: 45:30 ou 1:30:00">
-            <div class="helper-text">Format: heures:minutes:secondes</div>
+            <label for="time-hours">Temps</label>
+            <div class="selector-group">
+                <select id="time-hours">
+                    <option value="">-- h --</option>
+                    <option value="0">0 h</option>
+                    <option value="1">1 h</option>
+                    <option value="2">2 h</option>
+                    <option value="3">3 h</option>
+                    <option value="4">4 h</option>
+                    <option value="5">5 h</option>
+                    <option value="6">6 h</option>
+                    <option value="7">7 h</option>
+                    <option value="8">8 h</option>
+                    <option value="9">9 h</option>
+                    <option value="10">10 h</option>
+                </select>
+                <span>:</span>
+                <select id="time-minutes">
+                    <option value="">-- min --</option>
+                    <option value="0">0 min</option>
+                    <option value="5">5 min</option>
+                    <option value="10">10 min</option>
+                    <option value="15">15 min</option>
+                    <option value="20">20 min</option>
+                    <option value="25">25 min</option>
+                    <option value="30">30 min</option>
+                    <option value="35">35 min</option>
+                    <option value="40">40 min</option>
+                    <option value="45">45 min</option>
+                    <option value="50">50 min</option>
+                    <option value="55">55 min</option>
+                </select>
+                <span>:</span>
+                <select id="time-seconds">
+                    <option value="">-- sec --</option>
+                    <option value="0">0 sec</option>
+                    <option value="10">10 sec</option>
+                    <option value="20">20 sec</option>
+                    <option value="30">30 sec</option>
+                    <option value="40">40 sec</option>
+                    <option value="50">50 sec</option>
+                </select>
+            </div>
+            <div class="helper-text">Sélectionnez les heures, minutes et secondes</div>
         </div>
 
         <div class="input-group">
-            <label for="pace">Allure (min/km, format: MM:SS)</label>
-            <input type="text" id="pace" placeholder="Ex: 5:30">
-            <div class="helper-text">Format: minutes:secondes par km</div>
+            <label for="pace-minutes">Allure (min/km)</label>
+            <div class="selector-group">
+                <select id="pace-minutes">
+                    <option value="">-- min --</option>
+                    <option value="3">3 min</option>
+                    <option value="4">4 min</option>
+                    <option value="5">5 min</option>
+                    <option value="6">6 min</option>
+                    <option value="7">7 min</option>
+                    <option value="8">8 min</option>
+                    <option value="9">9 min</option>
+                    <option value="10">10 min</option>
+                    <option value="11">11 min</option>
+                    <option value="12">12 min</option>
+                    <option value="13">13 min</option>
+                    <option value="14">14 min</option>
+                    <option value="15">15 min</option>
+                </select>
+                <span>:</span>
+                <select id="pace-seconds">
+                    <option value="">-- sec --</option>
+                    <option value="0">0 sec</option>
+                    <option value="10">10 sec</option>
+                    <option value="20">20 sec</option>
+                    <option value="30">30 sec</option>
+                    <option value="40">40 sec</option>
+                    <option value="50">50 sec</option>
+                </select>
+            </div>
+            <div class="helper-text">Sélectionnez les minutes et secondes par km</div>
         </div>
 
         <button onclick="calculate()">Calculer</button>
@@ -185,6 +308,44 @@
     </div>
 
     <script>
+        function getDistanceValue() {
+            const kmValue = document.getElementById('distance-km').value;
+            const mValue = document.getElementById('distance-m').value;
+            
+            if (!kmValue && !mValue) return null;
+            
+            const km = kmValue ? parseFloat(kmValue) : 0;
+            const m = mValue ? parseFloat(mValue) : 0;
+            
+            return km + (m / 1000);
+        }
+
+        function getTimeValue() {
+            const hours = document.getElementById('time-hours').value;
+            const minutes = document.getElementById('time-minutes').value;
+            const seconds = document.getElementById('time-seconds').value;
+            
+            if (!hours && !minutes && !seconds) return null;
+            
+            const h = hours ? parseInt(hours) : 0;
+            const m = minutes ? parseInt(minutes) : 0;
+            const s = seconds ? parseInt(seconds) : 0;
+            
+            return h * 3600 + m * 60 + s;
+        }
+
+        function getPaceValue() {
+            const minutes = document.getElementById('pace-minutes').value;
+            const seconds = document.getElementById('pace-seconds').value;
+            
+            if (!minutes && !seconds) return null;
+            
+            const m = minutes ? parseInt(minutes) : 0;
+            const s = seconds ? parseInt(seconds) : 0;
+            
+            return m * 60 + s;
+        }
+
         function parseTime(timeStr) {
             if (!timeStr || timeStr.trim() === '') return null;
             
@@ -239,18 +400,14 @@
         }
 
         function calculate() {
-            const distanceInput = document.getElementById('distance').value;
-            const timeInput = document.getElementById('time').value;
-            const paceInput = document.getElementById('pace').value;
-
-            const distance = distanceInput ? parseFloat(distanceInput) : null;
-            const timeSeconds = parseTime(timeInput);
-            const paceSeconds = parseTime(paceInput);
+            const distance = getDistanceValue();
+            const timeSeconds = getTimeValue();
+            const paceSeconds = getPaceValue();
 
             const filledCount = [distance, timeSeconds, paceSeconds].filter(v => v !== null && v > 0).length;
 
             if (filledCount !== 2) {
-                showError('❌ Veuillez remplir exactement deux valeurs parmi les trois (distance, temps, allure).');
+                showError('❌ Veuillez sélectionner exactement deux valeurs parmi les trois (distance, temps, allure).');
                 return;
             }
 
@@ -290,9 +447,13 @@
         }
 
         function resetForm() {
-            document.getElementById('distance').value = '';
-            document.getElementById('time').value = '';
-            document.getElementById('pace').value = '';
+            document.getElementById('distance-km').value = '';
+            document.getElementById('distance-m').value = '';
+            document.getElementById('time-hours').value = '';
+            document.getElementById('time-minutes').value = '';
+            document.getElementById('time-seconds').value = '';
+            document.getElementById('pace-minutes').value = '';
+            document.getElementById('pace-seconds').value = '';
             document.getElementById('error').classList.remove('show');
             document.getElementById('result').classList.remove('show');
         }
