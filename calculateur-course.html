@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'Allures de Course à Pied</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .unit {
+            color: #888;
+            font-size: 14px;
+            min-width: 80px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .info strong {
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃 Calculateur de Course à Pied</h1>
+        <p class="subtitle">Remplissez 2 valeurs pour calculer la 3ème</p>
+
+        <div class="input-group">
+            <label for="distance">Distance</label>
+            <div class="input-wrapper">
+                <input type="number" id="distance" placeholder="Ex: 10" step="0.01" min="0">
+                <span class="unit">kilomètres</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="timeHours">Temps - Heures</label>
+            <div class="input-wrapper">
+                <input type="number" id="timeHours" placeholder="0" min="0" step="1">
+                <span class="unit">heures</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="timeMinutes">Temps - Minutes</label>
+            <div class="input-wrapper">
+                <input type="number" id="timeMinutes" placeholder="45" min="0" max="59" step="1">
+                <span class="unit">minutes</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="timeSeconds">Temps - Secondes</label>
+            <div class="input-wrapper">
+                <input type="number" id="timeSeconds" placeholder="0" min="0" max="59" step="1">
+                <span class="unit">secondes</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="paceMinutes">Allure - Minutes par km</label>
+            <div class="input-wrapper">
+                <input type="number" id="paceMinutes" placeholder="5" min="0" step="1">
+                <span class="unit">min/km</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="paceSeconds">Allure - Secondes par km</label>
+            <div class="input-wrapper">
+                <input type="number" id="paceSeconds" placeholder="30" min="0" max="59" step="1">
+                <span class="unit">sec/km</span>
+            </div>
+        </div>
+
+        <button onclick="calculate()">Calculer</button>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <h3>Résultat :</h3>
+            <div class="result-value" id="resultValue"></div>
+        </div>
+
+        <div class="info">
+            <strong>Comment utiliser :</strong><br>
+            Remplissez exactement 2 des 3 paramètres (distance, temps, allure) et cliquez sur "Calculer" pour obtenir le 3ème.
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Récupérer les valeurs
+            const distance = parseFloat(document.getElementById('distance').value) || null;
+            
+            const timeHours = parseInt(document.getElementById('timeHours').value) || 0;
+            const timeMinutes = parseInt(document.getElementById('timeMinutes').value) || 0;
+            const timeSeconds = parseInt(document.getElementById('timeSeconds').value) || 0;
+            const totalTimeMinutes = timeHours * 60 + timeMinutes + timeSeconds / 60;
+            const hasTime = timeHours > 0 || timeMinutes > 0 || timeSeconds > 0;
+            
+            const paceMinutes = parseInt(document.getElementById('paceMinutes').value) || 0;
+            const paceSeconds = parseInt(document.getElementById('paceSeconds').value) || 0;
+            const totalPaceMinutes = paceMinutes + paceSeconds / 60;
+            const hasPace = paceMinutes > 0 || paceSeconds > 0;
+
+            // Masquer les résultats et erreurs précédents
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+
+            // Compter combien de paramètres sont remplis
+            const filledCount = (distance !== null ? 1 : 0) + (hasTime ? 1 : 0) + (hasPace ? 1 : 0);
+
+            if (filledCount < 2) {
+                showError('Veuillez remplir exactement 2 valeurs parmi distance, temps et allure.');
+                return;
+            }
+
+            if (filledCount > 2) {
+                showError('Veuillez remplir exactement 2 valeurs, pas plus.');
+                return;
+            }
+
+            let result = '';
+
+            // Calculer la valeur manquante
+            if (distance === null) {
+                // Calculer la distance : Distance = Allure × Temps
+                if (!hasTime || !hasPace) {
+                    showError('Veuillez remplir le temps et l\'allure pour calculer la distance.');
+                    return;
+                }
+                const calculatedDistance = totalTimeMinutes / totalPaceMinutes;
+                result = `Distance : <strong>${calculatedDistance.toFixed(2)} km</strong>`;
+                document.getElementById('distance').value = calculatedDistance.toFixed(2);
+            } else if (!hasTime) {
+                // Calculer le temps : Temps = Distance × Allure
+                if (distance === null || !hasPace) {
+                    showError('Veuillez remplir la distance et l\'allure pour calculer le temps.');
+                    return;
+                }
+                const totalMinutes = distance * totalPaceMinutes;
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = Math.floor(totalMinutes % 60);
+                const seconds = Math.round((totalMinutes % 1) * 60);
+                result = `Temps : <strong>${hours}h ${minutes}min ${seconds}s</strong>`;
+                document.getElementById('timeHours').value = hours;
+                document.getElementById('timeMinutes').value = minutes;
+                document.getElementById('timeSeconds').value = seconds;
+            } else if (!hasPace) {
+                // Calculer l'allure : Allure = Temps / Distance
+                if (distance === null || !hasTime) {
+                    showError('Veuillez remplir la distance et le temps pour calculer l\'allure.');
+                    return;
+                }
+                if (distance === 0) {
+                    showError('La distance ne peut pas être zéro.');
+                    return;
+                }
+                const pacePerKm = totalTimeMinutes / distance;
+                const paceMin = Math.floor(pacePerKm);
+                const paceSec = Math.round((pacePerKm % 1) * 60);
+                result = `Allure : <strong>${paceMin}:${paceSec.toString().padStart(2, '0')} min/km</strong>`;
+                document.getElementById('paceMinutes').value = paceMin;
+                document.getElementById('paceSeconds').value = paceSec;
+            }
+
+            // Afficher le résultat
+            showResult(result);
+        }
+
+        function showResult(message) {
+            document.getElementById('resultValue').innerHTML = message;
+            document.getElementById('result').classList.add('show');
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').classList.add('show');
+        }
+
+        // Permettre l'utilisation de la touche Entrée
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    calculate();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
