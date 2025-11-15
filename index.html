@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Course à Pied</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .result p {
+            color: #555;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .error {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fee;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .reset-btn {
+            margin-top: 10px;
+            background: #95a5a6;
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+
+        .reset-btn:hover {
+            box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃 Calculateur de Course</h1>
+        <p class="subtitle">Remplissez deux valeurs pour calculer la troisième</p>
+
+        <div class="input-group">
+            <label for="distance">Distance (km)</label>
+            <input type="number" id="distance" placeholder="Ex: 10" step="0.01" min="0">
+            <div class="helper-text">Entrez la distance en kilomètres</div>
+        </div>
+
+        <div class="input-group">
+            <label for="time">Temps (format: HH:MM:SS ou MM:SS)</label>
+            <input type="text" id="time" placeholder="Ex: 45:30 ou 1:30:00">
+            <div class="helper-text">Format: heures:minutes:secondes</div>
+        </div>
+
+        <div class="input-group">
+            <label for="pace">Allure (min/km, format: MM:SS)</label>
+            <input type="text" id="pace" placeholder="Ex: 5:30">
+            <div class="helper-text">Format: minutes:secondes par km</div>
+        </div>
+
+        <button onclick="calculate()">Calculer</button>
+        <button class="reset-btn" onclick="resetForm()">Réinitialiser</button>
+
+        <div id="error" class="error"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function parseTime(timeStr) {
+            if (!timeStr || timeStr.trim() === '') return null;
+            
+            const parts = timeStr.trim().split(':');
+            if (parts.length === 2) {
+                // MM:SS format
+                const minutes = parseInt(parts[0]);
+                const seconds = parseInt(parts[1]);
+                if (isNaN(minutes) || isNaN(seconds) || minutes < 0 || seconds < 0 || seconds >= 60) {
+                    return null;
+                }
+                return minutes * 60 + seconds;
+            } else if (parts.length === 3) {
+                // HH:MM:SS format
+                const hours = parseInt(parts[0]);
+                const minutes = parseInt(parts[1]);
+                const seconds = parseInt(parts[2]);
+                if (isNaN(hours) || isNaN(minutes) || isNaN(seconds) || 
+                    hours < 0 || minutes < 0 || seconds < 0 || 
+                    minutes >= 60 || seconds >= 60) {
+                    return null;
+                }
+                return hours * 3600 + minutes * 60 + seconds;
+            }
+            return null;
+        }
+
+        function formatTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            } else {
+                return `${minutes}:${String(seconds).padStart(2, '0')}`;
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            document.getElementById('result').classList.remove('show');
+        }
+
+        function showResult(title, content) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<h3>${title}</h3><p>${content}</p>`;
+            resultDiv.classList.add('show');
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function calculate() {
+            const distanceInput = document.getElementById('distance').value;
+            const timeInput = document.getElementById('time').value;
+            const paceInput = document.getElementById('pace').value;
+
+            const distance = distanceInput ? parseFloat(distanceInput) : null;
+            const timeSeconds = parseTime(timeInput);
+            const paceSeconds = parseTime(paceInput);
+
+            const filledCount = [distance, timeSeconds, paceSeconds].filter(v => v !== null && v > 0).length;
+
+            if (filledCount !== 2) {
+                showError('❌ Veuillez remplir exactement deux valeurs parmi les trois (distance, temps, allure).');
+                return;
+            }
+
+            try {
+                // Calculate missing value
+                if (distance === null || distance === 0) {
+                    // Calculate distance from time and pace
+                    const calculatedDistance = timeSeconds / paceSeconds;
+                    showResult(
+                        '📏 Distance calculée',
+                        `Distance: <strong>${calculatedDistance.toFixed(2)} km</strong><br>` +
+                        `Temps: ${formatTime(timeSeconds)}<br>` +
+                        `Allure: ${formatTime(paceSeconds)}/km`
+                    );
+                } else if (timeSeconds === null) {
+                    // Calculate time from distance and pace
+                    const calculatedTime = distance * paceSeconds;
+                    showResult(
+                        '⏱️ Temps calculé',
+                        `Temps: <strong>${formatTime(calculatedTime)}</strong><br>` +
+                        `Distance: ${distance} km<br>` +
+                        `Allure: ${formatTime(paceSeconds)}/km`
+                    );
+                } else if (paceSeconds === null) {
+                    // Calculate pace from distance and time
+                    const calculatedPace = timeSeconds / distance;
+                    showResult(
+                        '🏃 Allure calculée',
+                        `Allure: <strong>${formatTime(calculatedPace)}/km</strong><br>` +
+                        `Distance: ${distance} km<br>` +
+                        `Temps: ${formatTime(timeSeconds)}`
+                    );
+                }
+            } catch (error) {
+                showError('❌ Erreur lors du calcul. Vérifiez vos valeurs.');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('distance').value = '';
+            document.getElementById('time').value = '';
+            document.getElementById('pace').value = '';
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('result').classList.remove('show');
+        }
+
+        // Allow Enter key to trigger calculation
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
