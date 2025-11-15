@@ -75,6 +75,89 @@
             cursor: not-allowed;
         }
 
+        .picker-container {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 10px;
+        }
+
+        .picker-highlight {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 40px;
+            transform: translateY(-50%);
+            background: rgba(102, 126, 234, 0.1);
+            border-top: 2px solid #667eea;
+            border-bottom: 2px solid #667eea;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .picker-wheel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 100%;
+        }
+
+        .picker-column {
+            flex: 1;
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            position: relative;
+        }
+
+        .picker-column::-webkit-scrollbar {
+            display: none;
+        }
+
+        .picker-item {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            scroll-snap-align: center;
+            font-size: 18px;
+            color: #999;
+            transition: color 0.2s, font-weight 0.2s;
+            user-select: none;
+        }
+
+        .picker-item.selected {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .picker-label {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .multi-picker {
+            display: flex;
+            gap: 5px;
+        }
+
+        .multi-picker .picker-column {
+            flex: 1;
+        }
+
         .helper-text {
             font-size: 12px;
             color: #888;
@@ -161,19 +244,45 @@
 
         <div class="input-group">
             <label for="distance">Distance (km)</label>
-            <input type="number" id="distance" placeholder="Ex: 10" step="0.01" min="0">
-            <div class="helper-text">Entrez la distance en kilomètres</div>
+            <div class="picker-container">
+                <div class="picker-highlight"></div>
+                <div class="picker-wheel multi-picker">
+                    <div class="picker-column" id="distance-int"></div>
+                    <span class="picker-label" style="left: 48%;">.</span>
+                    <div class="picker-column" id="distance-dec"></div>
+                    <span class="picker-label" style="right: 10px;">km</span>
+                </div>
+            </div>
+            <div class="helper-text">Faites défiler pour sélectionner la distance</div>
         </div>
 
         <div class="input-group">
-            <label for="time">Temps (format: HH:MM:SS ou MM:SS)</label>
-            <input type="text" id="time" placeholder="Ex: 45:30 ou 1:30:00">
+            <label for="time">Temps</label>
+            <div class="picker-container">
+                <div class="picker-highlight"></div>
+                <div class="picker-wheel multi-picker">
+                    <div class="picker-column" id="time-hours"></div>
+                    <span class="picker-label" style="left: 30%;">h</span>
+                    <div class="picker-column" id="time-minutes"></div>
+                    <span class="picker-label" style="left: 63%;">m</span>
+                    <div class="picker-column" id="time-seconds"></div>
+                    <span class="picker-label" style="right: 10px;">s</span>
+                </div>
+            </div>
             <div class="helper-text">Format: heures:minutes:secondes</div>
         </div>
 
         <div class="input-group">
-            <label for="pace">Allure (min/km, format: MM:SS)</label>
-            <input type="text" id="pace" placeholder="Ex: 5:30">
+            <label for="pace">Allure (min/km)</label>
+            <div class="picker-container">
+                <div class="picker-highlight"></div>
+                <div class="picker-wheel multi-picker">
+                    <div class="picker-column" id="pace-minutes"></div>
+                    <span class="picker-label" style="left: 48%;">:</span>
+                    <div class="picker-column" id="pace-seconds"></div>
+                    <span class="picker-label" style="right: 10px;">/km</span>
+                </div>
+            </div>
             <div class="helper-text">Format: minutes:secondes par km</div>
         </div>
 
@@ -185,12 +294,158 @@
     </div>
 
     <script>
+        // Picker wheel state
+        const pickerState = {
+            distance: { int: 0, dec: 0 },
+            time: { hours: 0, minutes: 0, seconds: 0 },
+            pace: { minutes: 0, seconds: 0 }
+        };
+
+        // Initialize picker wheels
+        function initPicker(elementId, min, max, step = 1, padZero = false) {
+            const container = document.getElementById(elementId);
+            const items = [];
+            
+            // Add padding items at top and bottom
+            for (let i = 0; i < 2; i++) {
+                const paddingItem = document.createElement('div');
+                paddingItem.className = 'picker-item';
+                paddingItem.innerHTML = '&nbsp;';
+                container.appendChild(paddingItem);
+            }
+
+            // Add actual values
+            for (let i = min; i <= max; i += step) {
+                const item = document.createElement('div');
+                item.className = 'picker-item';
+                const value = i;
+                item.textContent = padZero ? String(value).padStart(2, '0') : value;
+                item.dataset.value = value;
+                items.push(item);
+                container.appendChild(item);
+            }
+
+            // Add padding items at bottom
+            for (let i = 0; i < 2; i++) {
+                const paddingItem = document.createElement('div');
+                paddingItem.className = 'picker-item';
+                paddingItem.innerHTML = '&nbsp;';
+                container.appendChild(paddingItem);
+            }
+
+            // Scroll to center
+            container.scrollTop = 0;
+
+            // Add scroll listener
+            let scrollTimeout;
+            container.addEventListener('scroll', function() {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    snapToNearest(container);
+                }, 100);
+                updateSelection(container);
+            });
+
+            // Snap to initial position
+            setTimeout(() => snapToNearest(container), 100);
+        }
+
+        function snapToNearest(container) {
+            const items = Array.from(container.querySelectorAll('.picker-item[data-value]'));
+            const containerRect = container.getBoundingClientRect();
+            const centerY = containerRect.top + containerRect.height / 2;
+
+            let closest = null;
+            let closestDistance = Infinity;
+
+            items.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const itemCenterY = rect.top + rect.height / 2;
+                const distance = Math.abs(centerY - itemCenterY);
+
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closest = item;
+                }
+            });
+
+            if (closest) {
+                closest.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function updateSelection(container) {
+            const items = Array.from(container.querySelectorAll('.picker-item'));
+            const containerRect = container.getBoundingClientRect();
+            const centerY = containerRect.top + containerRect.height / 2;
+
+            items.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const itemCenterY = rect.top + rect.height / 2;
+                const distance = Math.abs(centerY - itemCenterY);
+
+                if (distance < 20) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        function getPickerValue(elementId) {
+            const container = document.getElementById(elementId);
+            const items = Array.from(container.querySelectorAll('.picker-item[data-value]'));
+            const containerRect = container.getBoundingClientRect();
+            const centerY = containerRect.top + containerRect.height / 2;
+
+            let closest = null;
+            let closestDistance = Infinity;
+
+            items.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const itemCenterY = rect.top + rect.height / 2;
+                const distance = Math.abs(centerY - itemCenterY);
+
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closest = item;
+                }
+            });
+
+            return closest ? parseInt(closest.dataset.value) : 0;
+        }
+
+        function setPickerValue(elementId, value) {
+            const container = document.getElementById(elementId);
+            const items = Array.from(container.querySelectorAll('.picker-item[data-value]'));
+            const targetItem = items.find(item => parseInt(item.dataset.value) === value);
+            
+            if (targetItem) {
+                targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Initialize all pickers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Distance picker: 0-100 km with 0-9 decimals
+            initPicker('distance-int', 0, 100, 1, false);
+            initPicker('distance-dec', 0, 9, 1, false);
+
+            // Time picker: 0-9 hours, 0-59 minutes, 0-59 seconds
+            initPicker('time-hours', 0, 9, 1, false);
+            initPicker('time-minutes', 0, 59, 1, true);
+            initPicker('time-seconds', 0, 59, 1, true);
+
+            // Pace picker: 0-15 minutes, 0-59 seconds
+            initPicker('pace-minutes', 0, 15, 1, false);
+            initPicker('pace-seconds', 0, 59, 1, true);
+        });
+
         function parseTime(timeStr) {
             if (!timeStr || timeStr.trim() === '') return null;
             
             const parts = timeStr.trim().split(':');
             if (parts.length === 2) {
-                // MM:SS format
                 const minutes = parseInt(parts[0]);
                 const seconds = parseInt(parts[1]);
                 if (isNaN(minutes) || isNaN(seconds) || minutes < 0 || seconds < 0 || seconds >= 60) {
@@ -198,7 +453,6 @@
                 }
                 return minutes * 60 + seconds;
             } else if (parts.length === 3) {
-                // HH:MM:SS format
                 const hours = parseInt(parts[0]);
                 const minutes = parseInt(parts[1]);
                 const seconds = parseInt(parts[2]);
@@ -239,49 +493,79 @@
         }
 
         function calculate() {
-            const distanceInput = document.getElementById('distance').value;
-            const timeInput = document.getElementById('time').value;
-            const paceInput = document.getElementById('pace').value;
+            // Get values from pickers
+            const distanceInt = getPickerValue('distance-int');
+            const distanceDec = getPickerValue('distance-dec');
+            const distance = distanceInt + distanceDec / 10;
 
-            const distance = distanceInput ? parseFloat(distanceInput) : null;
-            const timeSeconds = parseTime(timeInput);
-            const paceSeconds = parseTime(paceInput);
+            const timeHours = getPickerValue('time-hours');
+            const timeMinutes = getPickerValue('time-minutes');
+            const timeSeconds = getPickerValue('time-seconds');
+            const timeTotal = timeHours * 3600 + timeMinutes * 60 + timeSeconds;
 
-            const filledCount = [distance, timeSeconds, paceSeconds].filter(v => v !== null && v > 0).length;
+            const paceMinutes = getPickerValue('pace-minutes');
+            const paceSeconds = getPickerValue('pace-seconds');
+            const paceTotal = paceMinutes * 60 + paceSeconds;
 
-            if (filledCount !== 2) {
-                showError('❌ Veuillez remplir exactement deux valeurs parmi les trois (distance, temps, allure).');
+            // Determine which values are "set" (non-zero)
+            const distanceSet = distance > 0;
+            const timeSet = timeTotal > 0;
+            const paceSet = paceTotal > 0;
+
+            const setCount = [distanceSet, timeSet, paceSet].filter(Boolean).length;
+
+            if (setCount !== 2) {
+                showError('❌ Veuillez définir exactement deux valeurs parmi les trois (distance, temps, allure).');
                 return;
             }
 
             try {
-                // Calculate missing value
-                if (distance === null || distance === 0) {
+                if (!distanceSet) {
                     // Calculate distance from time and pace
-                    const calculatedDistance = timeSeconds / paceSeconds;
+                    const calculatedDistance = timeTotal / paceTotal;
+                    const distInt = Math.floor(calculatedDistance);
+                    const distDec = Math.round((calculatedDistance - distInt) * 10);
+                    
+                    setPickerValue('distance-int', distInt);
+                    setPickerValue('distance-dec', distDec);
+                    
                     showResult(
                         '📏 Distance calculée',
                         `Distance: <strong>${calculatedDistance.toFixed(2)} km</strong><br>` +
-                        `Temps: ${formatTime(timeSeconds)}<br>` +
-                        `Allure: ${formatTime(paceSeconds)}/km`
+                        `Temps: ${formatTime(timeTotal)}<br>` +
+                        `Allure: ${formatTime(paceTotal)}/km`
                     );
-                } else if (timeSeconds === null) {
+                } else if (!timeSet) {
                     // Calculate time from distance and pace
-                    const calculatedTime = distance * paceSeconds;
+                    const calculatedTime = distance * paceTotal;
+                    const hours = Math.floor(calculatedTime / 3600);
+                    const minutes = Math.floor((calculatedTime % 3600) / 60);
+                    const seconds = Math.floor(calculatedTime % 60);
+                    
+                    setPickerValue('time-hours', hours);
+                    setPickerValue('time-minutes', minutes);
+                    setPickerValue('time-seconds', seconds);
+                    
                     showResult(
                         '⏱️ Temps calculé',
                         `Temps: <strong>${formatTime(calculatedTime)}</strong><br>` +
-                        `Distance: ${distance} km<br>` +
-                        `Allure: ${formatTime(paceSeconds)}/km`
+                        `Distance: ${distance.toFixed(1)} km<br>` +
+                        `Allure: ${formatTime(paceTotal)}/km`
                     );
-                } else if (paceSeconds === null) {
+                } else if (!paceSet) {
                     // Calculate pace from distance and time
-                    const calculatedPace = timeSeconds / distance;
+                    const calculatedPace = timeTotal / distance;
+                    const minutes = Math.floor(calculatedPace / 60);
+                    const seconds = Math.floor(calculatedPace % 60);
+                    
+                    setPickerValue('pace-minutes', minutes);
+                    setPickerValue('pace-seconds', seconds);
+                    
                     showResult(
                         '🏃 Allure calculée',
                         `Allure: <strong>${formatTime(calculatedPace)}/km</strong><br>` +
-                        `Distance: ${distance} km<br>` +
-                        `Temps: ${formatTime(timeSeconds)}`
+                        `Distance: ${distance.toFixed(1)} km<br>` +
+                        `Temps: ${formatTime(timeTotal)}`
                     );
                 }
             } catch (error) {
@@ -290,9 +574,15 @@
         }
 
         function resetForm() {
-            document.getElementById('distance').value = '';
-            document.getElementById('time').value = '';
-            document.getElementById('pace').value = '';
+            // Reset all pickers to 0
+            setPickerValue('distance-int', 0);
+            setPickerValue('distance-dec', 0);
+            setPickerValue('time-hours', 0);
+            setPickerValue('time-minutes', 0);
+            setPickerValue('time-seconds', 0);
+            setPickerValue('pace-minutes', 0);
+            setPickerValue('pace-seconds', 0);
+            
             document.getElementById('error').classList.remove('show');
             document.getElementById('result').classList.remove('show');
         }
