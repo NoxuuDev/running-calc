@@ -152,6 +152,37 @@
         .reset-btn:hover {
             box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
         }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 10px;
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0;
+        }
+
+        .preset-btn:hover {
+            background: #e8e8ff;
+            border-color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .preset-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -159,10 +190,18 @@
         <h1>🏃 Calculateur de Course</h1>
         <p class="subtitle">Remplissez deux valeurs pour calculer la troisième</p>
 
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="setDistance(800)">800m</button>
+            <button class="preset-btn" onclick="setDistance(5000)">5km</button>
+            <button class="preset-btn" onclick="setDistance(10000)">10km</button>
+            <button class="preset-btn" onclick="setDistance(21097.5)">Semi</button>
+            <button class="preset-btn" onclick="setDistance(42195)" style="grid-column: 1 / -1;">Marathon</button>
+        </div>
+
         <div class="input-group">
-            <label for="distance">Distance (km)</label>
-            <input type="number" id="distance" placeholder="Ex: 10" step="0.01" min="0">
-            <div class="helper-text">Entrez la distance en kilomètres</div>
+            <label for="distance">Distance (m)</label>
+            <input type="number" id="distance" placeholder="Ex: 5000" step="1" min="0">
+            <div class="helper-text">Entrez la distance en mètres</div>
         </div>
 
         <div class="input-group">
@@ -185,6 +224,12 @@
     </div>
 
     <script>
+        function setDistance(meters) {
+            document.getElementById('distance').value = meters;
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('result').classList.remove('show');
+        }
+
         function parseTime(timeStr) {
             if (!timeStr || timeStr.trim() === '') return null;
             
@@ -243,11 +288,11 @@
             const timeInput = document.getElementById('time').value;
             const paceInput = document.getElementById('pace').value;
 
-            const distance = distanceInput ? parseFloat(distanceInput) : null;
+            const distanceMeters = distanceInput ? parseFloat(distanceInput) : null;
             const timeSeconds = parseTime(timeInput);
             const paceSeconds = parseTime(paceInput);
 
-            const filledCount = [distance, timeSeconds, paceSeconds].filter(v => v !== null && v > 0).length;
+            const filledCount = [distanceMeters, timeSeconds, paceSeconds].filter(v => v !== null && v > 0).length;
 
             if (filledCount !== 2) {
                 showError('❌ Veuillez remplir exactement deux valeurs parmi les trois (distance, temps, allure).');
@@ -256,31 +301,34 @@
 
             try {
                 // Calculate missing value
-                if (distance === null || distance === 0) {
+                if (distanceMeters === null || distanceMeters === 0) {
                     // Calculate distance from time and pace
-                    const calculatedDistance = timeSeconds / paceSeconds;
+                    const distanceKm = timeSeconds / paceSeconds;
+                    const calculatedDistanceMeters = distanceKm * 1000;
                     showResult(
                         '📏 Distance calculée',
-                        `Distance: <strong>${calculatedDistance.toFixed(2)} km</strong><br>` +
+                        `Distance: <strong>${calculatedDistanceMeters.toFixed(0)} m</strong> (${distanceKm.toFixed(2)} km)<br>` +
                         `Temps: ${formatTime(timeSeconds)}<br>` +
                         `Allure: ${formatTime(paceSeconds)}/km`
                     );
                 } else if (timeSeconds === null) {
                     // Calculate time from distance and pace
-                    const calculatedTime = distance * paceSeconds;
+                    const distanceKm = distanceMeters / 1000;
+                    const calculatedTime = distanceKm * paceSeconds;
                     showResult(
                         '⏱️ Temps calculé',
                         `Temps: <strong>${formatTime(calculatedTime)}</strong><br>` +
-                        `Distance: ${distance} km<br>` +
+                        `Distance: ${distanceMeters} m (${distanceKm.toFixed(2)} km)<br>` +
                         `Allure: ${formatTime(paceSeconds)}/km`
                     );
                 } else if (paceSeconds === null) {
                     // Calculate pace from distance and time
-                    const calculatedPace = timeSeconds / distance;
+                    const distanceKm = distanceMeters / 1000;
+                    const calculatedPace = timeSeconds / distanceKm;
                     showResult(
                         '🏃 Allure calculée',
                         `Allure: <strong>${formatTime(calculatedPace)}/km</strong><br>` +
-                        `Distance: ${distance} km<br>` +
+                        `Distance: ${distanceMeters} m (${distanceKm.toFixed(2)} km)<br>` +
                         `Temps: ${formatTime(timeSeconds)}`
                     );
                 }
