@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'Allure de Course</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .unit {
+            color: #888;
+            font-size: 14px;
+            min-width: 80px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .result p {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box p {
+            color: #1976d2;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃 Calculateur d'Allure</h1>
+        <p class="subtitle">Calculez votre allure, temps ou distance</p>
+
+        <div class="info-box">
+            <p>💡 <strong>Remplissez 2 valeurs</strong> parmi les 3 champs ci-dessous et cliquez sur "Calculer" pour obtenir la valeur manquante.</p>
+        </div>
+
+        <form id="calculatorForm">
+            <div class="input-group">
+                <label for="distance">Distance</label>
+                <div class="input-wrapper">
+                    <input type="number" id="distance" step="0.01" min="0" placeholder="ex: 10">
+                    <span class="unit">km</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="timeHours">Temps</label>
+                <div class="input-wrapper">
+                    <input type="number" id="timeHours" min="0" placeholder="Heures" style="max-width: 100px;">
+                    <span class="unit" style="min-width: 20px;">h</span>
+                    <input type="number" id="timeMinutes" min="0" max="59" placeholder="Minutes" style="max-width: 100px;">
+                    <span class="unit" style="min-width: 30px;">min</span>
+                    <input type="number" id="timeSeconds" min="0" max="59" placeholder="Sec" style="max-width: 100px;">
+                    <span class="unit" style="min-width: 20px;">s</span>
+                </div>
+                <div class="help-text">ex: 1h 30min 00s pour un semi-marathon</div>
+            </div>
+
+            <div class="input-group">
+                <label for="paceMinutes">Allure (par km)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="paceMinutes" min="0" placeholder="Minutes" style="max-width: 150px;">
+                    <span class="unit" style="min-width: 30px;">min</span>
+                    <input type="number" id="paceSeconds" min="0" max="59" placeholder="Sec" style="max-width: 150px;">
+                    <span class="unit" style="min-width: 20px;">s</span>
+                </div>
+                <div class="help-text">ex: 5min 30s/km</div>
+            </div>
+
+            <button type="submit">Calculer</button>
+        </form>
+
+        <div id="error" class="error"></div>
+        <div id="result" class="result">
+            <h3>Résultats</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            
+            // Reset messages
+            errorDiv.classList.remove('show');
+            resultDiv.classList.remove('show');
+            
+            // Get values
+            const distance = parseFloat(document.getElementById('distance').value) || null;
+            const timeHours = parseFloat(document.getElementById('timeHours').value) || 0;
+            const timeMinutes = parseFloat(document.getElementById('timeMinutes').value) || 0;
+            const timeSeconds = parseFloat(document.getElementById('timeSeconds').value) || 0;
+            const paceMinutes = parseFloat(document.getElementById('paceMinutes').value) || 0;
+            const paceSeconds = parseFloat(document.getElementById('paceSeconds').value) || 0;
+            
+            // Convert time to total seconds
+            const totalTimeSeconds = (timeHours * 3600) + (timeMinutes * 60) + timeSeconds;
+            const time = totalTimeSeconds > 0 ? totalTimeSeconds : null;
+            
+            // Convert pace to seconds per km
+            const totalPaceSeconds = (paceMinutes * 60) + paceSeconds;
+            const pace = totalPaceSeconds > 0 ? totalPaceSeconds : null;
+            
+            // Count how many values are filled
+            const filledCount = [distance, time, pace].filter(v => v !== null).length;
+            
+            if (filledCount < 2) {
+                errorDiv.textContent = '❌ Veuillez remplir au moins 2 valeurs pour effectuer le calcul.';
+                errorDiv.classList.add('show');
+                return;
+            }
+            
+            if (filledCount === 3) {
+                errorDiv.textContent = '⚠️ Vous avez rempli les 3 valeurs. Laissez vide la valeur que vous souhaitez calculer.';
+                errorDiv.classList.add('show');
+                return;
+            }
+            
+            let results = '';
+            
+            // Calculate missing value
+            if (distance === null) {
+                // Calculate distance from time and pace
+                const calculatedDistance = time / pace;
+                results += `<p><strong>Distance calculée:</strong> ${calculatedDistance.toFixed(2)} km</p>`;
+                document.getElementById('distance').value = calculatedDistance.toFixed(2);
+            } else if (time === null) {
+                // Calculate time from distance and pace
+                const calculatedTime = distance * pace;
+                const hours = Math.floor(calculatedTime / 3600);
+                const minutes = Math.floor((calculatedTime % 3600) / 60);
+                const seconds = Math.floor(calculatedTime % 60);
+                
+                results += `<p><strong>Temps calculé:</strong> `;
+                if (hours > 0) results += `${hours}h `;
+                if (minutes > 0 || hours > 0) results += `${minutes}min `;
+                results += `${seconds}s</p>`;
+                
+                document.getElementById('timeHours').value = hours;
+                document.getElementById('timeMinutes').value = minutes;
+                document.getElementById('timeSeconds').value = seconds;
+            } else if (pace === null) {
+                // Calculate pace from distance and time
+                const calculatedPace = time / distance;
+                const minutes = Math.floor(calculatedPace / 60);
+                const seconds = Math.floor(calculatedPace % 60);
+                
+                results += `<p><strong>Allure calculée:</strong> ${minutes}min ${seconds}s/km</p>`;
+                
+                document.getElementById('paceMinutes').value = minutes;
+                document.getElementById('paceSeconds').value = seconds;
+            }
+            
+            // Show all values
+            if (distance) {
+                results += `<p>Distance: ${distance} km</p>`;
+            }
+            if (time) {
+                const hours = Math.floor(time / 3600);
+                const minutes = Math.floor((time % 3600) / 60);
+                const seconds = Math.floor(time % 60);
+                let timeStr = '';
+                if (hours > 0) timeStr += `${hours}h `;
+                if (minutes > 0 || hours > 0) timeStr += `${minutes}min `;
+                timeStr += `${seconds}s`;
+                results += `<p>Temps: ${timeStr}</p>`;
+            }
+            if (pace) {
+                const minutes = Math.floor(pace / 60);
+                const seconds = Math.floor(pace % 60);
+                results += `<p>Allure: ${minutes}min ${seconds}s/km</p>`;
+            }
+            
+            resultContent.innerHTML = results;
+            resultDiv.classList.add('show');
+        });
+    </script>
+</body>
+</html>
